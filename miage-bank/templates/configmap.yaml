@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "miage-bank.fullname" . }}-config
+  namespace: miage-bank
+  labels:
+    {{- include "miage-bank.labels" . | nindent 4 }}
+data:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://{{ include "miage-bank.fullname" . }}-mysql:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}?serverTimezone=UTC"
+  SPRING_DATASOURCE_USERNAME: {{ .Values.mysql.username | quote }}
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+  SPRING_CLOUD_DISCOVERY_ENABLED: "false"
+  SPRING_CONFIG_IMPORT: "optional:configserver:"
+  SERVER_PORT: "10011"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics,prometheus"

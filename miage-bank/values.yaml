@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: miage-bank-clients
+  tag: v1
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 10011
+
+ingress:
+  enabled: true
+  className: nginx
+  hostname: miage-bank.local
+  tls: false
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+mysql:
+  image: mysql:8.0
+  database: banquebd
+  username: root
+  port: 3306
+
+# Nom du Secret Kubernetes créé manuellement (hors chart)
+# kubectl create secret generic miage-bank-secrets -n miage-bank --from-literal=mysql-root-password=root
+secretName: miage-bank-secrets
+
+probes:
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 10
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 90
+    periodSeconds: 15

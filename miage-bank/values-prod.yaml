@@ -1,0 +1,19 @@
+replicaCount: 2
+
+image:
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "500m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+
+ingress:
+  hostname: miage-bank.prod.miage.fr
+  tls: true
+
+mysql:
+  image: mysql:8.0

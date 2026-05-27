@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/eylul-alptekin/miage-bank-partieB.git
     targetRevision: main
-    path: PartieB/miage-bank
+    path: miage-bank
   destination:
     server: https://kubernetes.default.svc
     namespace: miage-bank

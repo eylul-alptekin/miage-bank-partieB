@@ -221,6 +221,10 @@ kubectl get application -n argocd miage-bank
 
 Le TP demande de démontrer la détection et la réconciliation automatique d'une dérive.
 
+> **Note sur la méthode :** ArgoCD avec `selfHeal: true` corrige les dérives en quelques secondes — trop vite pour observer l'état `OutOfSync` à l'écran. Pour la démonstration, on désactive temporairement `selfHeal` afin de rendre l'état intermédiaire visible, puis on le réactive pour montrer la réconciliation automatique. C'est une technique de ralentissement artificiel pour les besoins du TP ; en production, la correction se ferait sans intervention humaine.
+>
+> **Pourquoi ne pas scaler les réplicas ?** ArgoCD ignore volontairement le champ `.spec.replicas` des Deployments pour être compatible avec les HPA (Horizontal Pod Autoscaler). Supprimer une ressource gérée (comme le ConfigMap) est une dérive que ArgoCD détecte et corrige de manière fiable.
+
 ### Étape 1 — État initial (Synced)
 
 ```bash
@@ -228,39 +232,54 @@ kubectl get application -n argocd miage-bank
 # SYNC STATUS: Synced | HEALTH STATUS: Healthy
 ```
 
-L'application dans le cluster correspond exactement à ce qui est défini dans Git (`replicaCount: 1`).
+L'application dans le cluster correspond exactement à ce qui est défini dans Git.
 
-### Étape 2 — Créer une dérive manuellement
+### Étape 2 — Suspendre selfHeal pour observer la dérive
 
-On modifie le nombre de réplicas directement dans Kubernetes, **sans toucher Git** :
+On désactive temporairement la réconciliation automatique afin que l'état `OutOfSync` reste visible :
 
 ```bash
-kubectl scale deployment miage-bank -n miage-bank --replicas=2
+kubectl patch application miage-bank -n argocd \
+  --type merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"selfHeal":false}}}}'
 ```
 
-### Étape 3 — ArgoCD détecte l'écart (OutOfSync)
+### Étape 3 — Créer une dérive manuellement
 
-Dans les 3 minutes suivantes, ArgoCD détecte que le cluster ne correspond plus à Git :
+On supprime le ConfigMap directement dans Kubernetes, **sans toucher Git** :
+
+```bash
+kubectl delete configmap miage-bank-config -n miage-bank
+```
+
+### Étape 4 — ArgoCD détecte l'écart (OutOfSync)
+
+ArgoCD détecte que le ConfigMap n'existe plus dans le cluster alors qu'il est défini dans Git :
 
 ```bash
 kubectl get application -n argocd miage-bank
 # SYNC STATUS: OutOfSync | HEALTH STATUS: Healthy
 ```
 
-Dans l'interface ArgoCD (https://localhost:9090), la carte `miage-bank` passe de **Synced** (vert) à **OutOfSync** (orange).
+Dans l'interface ArgoCD, la carte `miage-bank` passe de **Synced** (vert) à **OutOfSync** (orange).
 
-### Étape 4 — Réconciliation automatique (selfHeal)
+### Étape 5 — Réactiver selfHeal → réconciliation automatique
 
-Grâce à `selfHeal: true`, ArgoCD remet automatiquement les réplicas à 1 pour correspondre à Git :
+On réactive `selfHeal`. ArgoCD recrée immédiatement le ConfigMap manquant pour correspondre à Git :
 
 ```bash
-kubectl get deployment miage-bank -n miage-bank
-# READY: 1/1 — ArgoCD a corrigé la dérive
+kubectl patch application miage-bank -n argocd \
+  --type merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"selfHeal":true}}}}'
+
+# Observer le retour à Synced
+watch -n 5 kubectl get application -n argocd miage-bank
+# SYNC STATUS: Synced | HEALTH STATUS: Healthy
 ```
 
 ### Conclusion
 
-Cette démonstration illustre le principe fondamental du GitOps : **Git est la source de vérité**. Toute modification manuelle du cluster est considérée comme une dérive et corrigée automatiquement.
+Cette démonstration illustre le principe fondamental du GitOps : **Git est la source de vérité**. Toute modification manuelle du cluster est considérée comme une dérive et corrigée automatiquement. Le fait que `selfHeal` soit si rapide qu'il faille le désactiver pour observer la dérive confirme son efficacité en production.
 
 ---
 

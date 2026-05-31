@@ -22,6 +22,7 @@ spec:
           ports:
             - containerPort: 4200
               protocol: TCP
+          command: ["node", "server.js"]
           env:
             - name: SERVER_PORT
               value: "4200"

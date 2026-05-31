@@ -1,0 +1,6 @@
+apiVersion: v2
+name: amc-comptes
+description: Chart Helm pour amc_comptes — Microservice comptes bancaires de MIAGE-Bank
+type: application
+version: 1.0.0
+appVersion: "v1"

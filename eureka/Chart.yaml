@@ -1,0 +1,6 @@
+apiVersion: v2
+name: eureka
+description: Chart Helm pour Eureka — Service Discovery de MIAGE-Bank
+type: application
+version: 1.0.0
+appVersion: "v1"

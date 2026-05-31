@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amc-comptes
+  namespace: miage-bank
+  labels:
+    app: amc-comptes
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: amc-comptes
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 10021
+      protocol: TCP

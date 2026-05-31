@@ -8,7 +8,7 @@ metadata:
 data:
   SPRING_DATASOURCE_URL: "jdbc:mysql://{{ include "miage-bank.fullname" . }}-mysql:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}?serverTimezone=UTC"
   SPRING_DATASOURCE_USERNAME: {{ .Values.mysql.username | quote }}
-  SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
   SPRING_JPA_DATABASE_PLATFORM: "org.hibernate.dialect.MySQLDialect"
   SPRING_CLOUD_DISCOVERY_ENABLED: "false"
   SPRING_CONFIG_IMPORT: "optional:configserver:"
